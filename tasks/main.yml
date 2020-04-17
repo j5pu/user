@@ -2,20 +2,6 @@
 # tasks file for user
 - name: user
   block:
-    - name: package rsync
-      package:
-        update_cache: yes
-        name: "{{ item }}"
-      loop: "{{ user_packages_ubuntu }}"
-      when: ansible_distribution == 'Ubuntu'
-
-    - name: package libselinux-python
-      package:
-        update_cache: yes
-        name: "{{ item }}"
-      loop: "{{ user_packages_redhat }}"
-      when: ansible_os_family == 'RedHat'
-
     - name: create group
       group:
         name: "{{ user_group }}"
