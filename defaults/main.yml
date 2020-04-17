@@ -1,3 +1,18 @@
 ---
 user_name: "{{ account_name }}"
-user_key_file: "~/.ssh/{{ account_name }}/id_rsa.pub"
+user_group: "{{ account_group }}"
+#user_key_file: "~/.ssh/{{ account_name }}*/id_rsa.pub"
+user_key_file: "~/.ssh/id_rsa.pub"
+user_sudoers_exclude_server_group: "{{ groups.NFERX }}"
+
+user_packages_common:
+  - sudo
+  - rsync
+  - lsof
+
+user_packages_ubuntu:
+  - {{ user_packages_common }}
+
+user_packages_redhat:
+  - {{ user_packages_common }}
+  - libselinux-python

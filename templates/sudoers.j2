@@ -5,7 +5,11 @@ Defaults env_delete = "PS1"
 root ALL=(ALL) ALL
 {% if ansible_distribution == 'MacOSX' %}
 %admin ALL=(ALL) NOPASSWD: ALL
-{% else %}
+{% endif %}
+{% if ansible_os_family == 'Debian' %}
 %sudo ALL=(ALL) NOPASSWD: ALL
+{% endif %}
+{% if ansible_os_family == 'RedHat' %}
+%wheel ALL=(ALL) NOPASSWD: ALL
 {% endif %}
 #includedir /etc/sudoers.d

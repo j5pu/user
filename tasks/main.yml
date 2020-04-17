@@ -2,24 +2,48 @@
 # tasks file for user
 - name: user
   block:
-    - name: create group {{ user_name }}
-      group:
-        name: "{{ user_name }}"
+    - name: package rsync
+      package:
+        update_cache: yes
+        name: "{{ item }}"
+      loop: "{{ user_packages_ubuntu }}"
+      when: ansible_distribution == 'Ubuntu'
 
-    - name: create user {{ user_name }}
+    - name: package libselinux-python
+      package:
+        update_cache: yes
+        name: "{{ item }}"
+      loop: "{{ user_packages_redhat }}"
+      when: ansible_os_family == 'RedHat'
+
+    - name: create group
+      group:
+        name: "{{ user_group }}"
+
+    - name: create user
       user:
         name: "{{ user_name }}"
-        group: "{{ user_name }}"
-        groups: ["{{ user_name }}", 'sudo', 'adm']
+        group: "{{ user_group }}"
+        groups: ["{{ user_group }}", 'sudo', 'adm']
         append: true
         shell: "/bin/bash"
+      when: ansible_os_family != 'RedHat'
+
+    - name: create user RedHat
+      user:
+        name: "{{ user_name }}"
+        group: "{{ user_group }}"
+        groups: ["{{ user_group }}", 'adm']
+        append: true
+        shell: "/bin/bash"
+      when: ansible_os_family == 'RedHat'
 
     - name: copy authorized_key
       authorized_key:
         user: "{{ user_name }}"
         key: "{{ lookup('file', user_key_file) }}"
 
-    - name: sudoers
+    - name: sudoers not in user_sudoers_exclude_server_group
       template:
         src: sudoers.j2
         dest: /etc/sudoers
@@ -27,6 +51,22 @@
         group: root
         mode: 0440
         backup: True
+      when: inventory_hostname not in user_sudoers_exclude_server_group
+
+    - name: sudoers in user_sudoers_exclude_server_group
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^{{ item }}'
+        line: '{{ item }}'
+        insertafter: EOF
+        validate: '/usr/sbin/visudo -cf %s'
+      loop:
+        - 'Defaults !env_reset'
+        - 'Defaults env_delete = "HOME"'
+        - 'Defaults env_delete = "PS1"'
+        - '{{ user_name }} ALL=(ALL) NOPASSWD: ALL'
+      when: inventory_hostname in user_sudoers_exclude_server_group
 
     - name: sudoers.d
       template:
