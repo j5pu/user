@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+Defaults !env_reset
+Defaults env_delete = "HOME"
+Defaults env_delete = "PS1"
+root ALL=(ALL) ALL
+{% if ansible_distribution == 'MacOSX' %}
+%admin ALL=(ALL) NOPASSWD: ALL
+{% else %}
+%sudo ALL=(ALL) NOPASSWD: ALL
+{% endif %}
+#includedir /etc/sudoers.d

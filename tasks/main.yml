@@ -1,0 +1,39 @@
+---
+# tasks file for user
+- name: user
+  block:
+    - name: create group {{ user_name }}
+      group:
+        name: "{{ user_name }}"
+
+    - name: create user {{ user_name }}
+      user:
+        name: "{{ user_name }}"
+        group: "{{ user_name }}"
+        groups: ["{{ user_name }}", 'sudo', 'adm']
+        append: true
+        shell: "/bin/bash"
+
+    - name: copy authorized_key
+      authorized_key:
+        user: "{{ user_name }}"
+        key: "{{ lookup('file', user_key_file) }}"
+
+    - name: sudoers
+      template:
+        src: sudoers.j2
+        dest: /etc/sudoers
+        owner: root
+        group: root
+        mode: 0440
+        backup: True
+
+    - name: sudoers.d
+      template:
+        src: sudoers_user.j2
+        dest: /etc/sudoers.d/{{ user_name }}
+        owner: root
+        group: root
+        mode: 0440
+        backup: True
+  when: ansible_distribution != 'MacOSX'
