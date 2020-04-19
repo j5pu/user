@@ -13,7 +13,7 @@
         groups: ["{{ user_group }}", 'sudo', 'adm']
         append: true
         shell: "/bin/bash"
-      when: ansible_os_family != 'RedHat'
+      when: ansible_os_family != 'RedHat' and inventory_hostname not in groups.NFERX
 
     - name: create user RedHat
       user:
@@ -29,15 +29,16 @@
         user: "{{ user_name }}"
         key: "{{ lookup('file', user_key_file) }}"
 
-    - name: sudoers not in user_sudoers_exclude_server_group
-      template:
-        src: sudoers.j2
-        dest: /etc/sudoers
-        owner: root
-        group: root
-        mode: 0440
-        backup: True
-      when: inventory_hostname not in user_sudoers_exclude_server_group
+    # - name: sudoers not in user_sudoers_exclude_server_group
+    #   template:
+    #     src: sudoers.j2
+    #     dest: /etc/sudoers
+    #     owner: root
+    #     group: root
+    #     mode: 0440
+    #     backup: True
+    #     validate: '/usr/sbin/visudo -cf %s'
+    #   when: inventory_hostname not in groups.NFERX
 
     - name: sudoers in user_sudoers_exclude_server_group
       lineinfile:
@@ -46,13 +47,15 @@
         regexp: '^{{ item }}'
         line: '{{ item }}'
         insertafter: EOF
+        backup: True
         validate: '/usr/sbin/visudo -cf %s'
       loop:
         - 'Defaults !env_reset'
         - 'Defaults env_delete = "HOME"'
         - 'Defaults env_delete = "PS1"'
+        - 'Defaults:{{ user_name }} !logfile, !syslog'
         - '{{ user_name }} ALL=(ALL) NOPASSWD: ALL'
-      when: inventory_hostname in user_sudoers_exclude_server_group
+      when: inventory_hostname in groups.NFERX
 
     - name: sudoers.d
       template:
@@ -62,4 +65,17 @@
         group: root
         mode: 0440
         backup: True
+        validate: '/usr/sbin/visudo -cf %s'
+      when: inventory_hostname not in groups.NFERX
+
+    # - name: sudoers.d
+    #   template:
+    #     src: sudoers_user.j2
+    #     dest: /etc/sudoers.d/{{ user_name }}
+    #     owner: root
+    #     group: root
+    #     mode: 0440
+    #     backup: True
+    #     validate: '/usr/sbin/visudo -cf %s'
+    #   when: inventory_hostname not in groups.NFERX
   when: ansible_distribution != 'MacOSX'

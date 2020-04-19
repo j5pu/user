@@ -1,3 +1,5 @@
-# {{ ansible_managed }}
+Defaults !env_reset
+Defaults env_delete = "HOME"
+Defaults env_delete = "PS1"
 Defaults:{{ user_name }} !logfile, !syslog
 {{user_name}} ALL=(ALL) NOPASSWD:ALL

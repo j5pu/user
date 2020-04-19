@@ -1,4 +1,3 @@
-# {{ ansible_managed }}
 Defaults !env_reset
 Defaults env_delete = "HOME"
 Defaults env_delete = "PS1"
@@ -8,8 +7,5 @@ root ALL=(ALL) ALL
 {% endif %}
 {% if ansible_os_family == 'Debian' %}
 %sudo ALL=(ALL) NOPASSWD: ALL
-{% endif %}
-{% if ansible_os_family == 'RedHat' %}
-%wheel ALL=(ALL) NOPASSWD: ALL
 {% endif %}
 #includedir /etc/sudoers.d
