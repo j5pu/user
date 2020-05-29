@@ -5,6 +5,7 @@
     - name: create group
       group:
         name: "{{ user_group }}"
+      when: ansible_os_family != 'RedHat' and inventory_hostname not in groups.NFERX
 
     - name: create user
       user:
@@ -58,6 +59,7 @@
       when: inventory_hostname in groups.NFERX
 
     - name: sudoers.d
+      become: yes
       template:
         src: sudoers_user.j2
         dest: /etc/sudoers.d/{{ user_name }}
